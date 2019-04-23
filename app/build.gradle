@@ -1,0 +1,83 @@
+apply plugin: 'com.android.application'
+
+android {
+
+    compileSdkVersion 27
+    buildToolsVersion '27.0.3'
+
+    useLibrary 'org.apache.http.legacy'
+
+    defaultConfig {
+        applicationId "com.vmloft.develop.app.screencast"
+        minSdkVersion 16
+        targetSdkVersion 22
+        versionCode 1
+        versionName '0.1.0'
+    }
+    signingConfigs {
+        config {
+            //签名文件在项目根目录下
+            //KEY_ALIAS，KEY_PASSWORD，STORE_PASSWORD写在项目根目录下的gradle.properties里
+            keyAlias "screen"
+            keyPassword "screen"
+            storeFile file('../keystore/screen.keystore')
+            storePassword "screen"
+        }
+    }
+
+    buildTypes {
+        release {
+            buildConfigField "boolean", "LOG_DEBUG", "false"
+            //是否混淆
+            minifyEnabled false
+            //是否移除无用资源
+            zipAlignEnabled true
+            proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
+            signingConfig signingConfigs.config//使用上面配置的签名进行打包
+
+        }
+        debug {
+            buildConfigField "boolean", "LOG_DEBUG", "true"
+            //是否混淆
+            minifyEnabled false
+//            signingConfig signingConfigs.config//ddebug模式下也使用上面配置的签名进行打包
+        }
+    }
+    packagingOptions {
+        exclude 'META-INF/beans.xml'
+    }
+    applicationVariants.all { variant ->
+        variant.outputs.all { output ->  // each 改为 all
+            def date = new Date().format("yyyyMMddHHmm", TimeZone.getDefault())
+            if (variant.buildType.name.equals('debug')) {
+                outputFileName = "screen_debug.apk"
+            }
+            if (variant.buildType.name.equals('release')) {
+                outputFileName = "screen_${date}_v${defaultConfig.versionName}_release.apk"
+            }
+        }
+    }
+
+}
+dependencies {
+    implementation fileTree(include: ['*.jar'], dir: 'libs')
+    implementation 'com.android.support:design:27.1.1'
+    // ButterKnife 库
+    implementation 'com.jakewharton:butterknife:8.8.1'
+    annotationProcessor 'com.jakewharton:butterknife-compiler:8.8.1'
+    implementation 'org.greenrobot:eventbus:3.0.0'
+    // Cling library
+    implementation 'org.fourthline.cling:cling-core:2.1.1'
+    implementation 'org.fourthline.cling:cling-support:2.1.1'
+    // Jetty library
+    implementation 'org.eclipse.jetty:jetty-server:8.1.21.v20160908'
+    implementation 'org.eclipse.jetty:jetty-servlet:8.1.21.v20160908'
+    implementation 'org.eclipse.jetty:jetty-client:8.1.21.v20160908'
+    // 日志管理
+    implementation 'org.slf4j:slf4j-simple:1.7.21'
+    // https://mvnrepository.com/artifact/javax.enterprise/cdi-api
+    compileOnly group: 'javax.enterprise', name: 'cdi-api', version: '2.0'
+
+    // 自己封装的工具库
+    implementation 'com.vmloft.library:vmtools:0.1.2'
+}
